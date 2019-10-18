@@ -116,9 +116,10 @@ class Desc:
         coordinates = True
         new_mol = ''
         transcription = {'LOGD': 'logD', 'LOGP': 'logP', 'PSA': 'TPSA', 'MASS': 'MW', 'AROMATIC_RINGCOUNT': 'ArRings',
-                         'pkacalculator': 'bpKa', 'DONOR_COUNT': 'HBD', 'CHARGE_DISTRIBUTION': 'charge_dist(7.4)'}
+                         'pkacalculator': 'bpKa', 'DONOR_COUNT': 'HBD', 'CHARGE_DISTRIBUTION': 'charge_dist(7.4)','ATOMCOUNT':'HAC'}
+        splitted_lines = self.mol.splitlines()
 
-        for lines in self.mol.splitlines():
+        for lines in splitted_lines:
             if lines.startswith('>  <'):
                 c_lines = lines.lstrip('>  <')
                 chemprop = c_lines.rstrip('>')
@@ -134,6 +135,8 @@ class Desc:
                     value = lines.split('\t')[0]
                     if value.strip() == "":
                         value = 0.0
+                if chemprop == 'ATOMCOUNT':
+                    value = int(lines) - int(next(splitted_lines))
                 if chemprop == 'CHARGE_DISTRIBUTION':
                     value = lines.split('\t')[1].lstrip()
                 if chemprop == 'Name':
@@ -192,8 +195,7 @@ class Desc:
     #     self.Prop['ArRings'] = results['Aromatic ring count']
     #     os.remove('tmp.sdf')  # deleting the temporary file
 
-    def calc_mpo_score(
-            self):  # call the monotonic or hump score function for each term with the boundaries and sum them at the
+    def calc_mpo_score(self):  # call the monotonic or hump score function for each term with the boundaries and sum them at the
         #  end to populate the CNS MPO Score
         try:
             self.Prop['bpKaScore'] = float(monotonic_score(self.Prop['bpKa'], 8,
@@ -223,7 +225,6 @@ class Desc:
             self.Prop['TPSAScore'] = "Error"
             self.Prop['MPOScore'] = "Error"
             self.Prop['MPOScore_v2'] = "Error"
-
 
     def print_details(self, level):  # For visualisation in the terminal only
         if level == 0:
@@ -299,7 +300,7 @@ def sdf_parser(file):
 
 def calc_param(file):
     command_1 = 'cxcalc -i name -S pkacalculator -t basic -b 1 logD -H 7.4 logP donorcount polarsurfacearea mass ' \
-                'aromaticringcount rotatablebondcount '
+                'aromaticringcount rotatablebondcount atomcount atomcount -z 1 '
     if str(file).startswith('/'):
         command_1 += str(file)
     else:
