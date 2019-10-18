@@ -108,7 +108,7 @@ def calc_BBBScore(prop_dict):
 
 	scores_dict['Aro_R'] = calc_AroScore(int(prop_dict['ArRings']))
 	scores_dict['HA'] = calc_HAScore(int(prop_dict['HAC']))
-	scores_dict['MWHBN'] = calc_MWHBNScore(float(prop_dict['MW']), float(prop_dict['HBD']))
+	scores_dict['MWHBN'] = calc_MWHBNScore(float(prop_dict['MW']), float(prop_dict['HBD']),float(prop_dict['HBA']))
 	scores_dict['TPSA'] = calc_TPSAScore(float(prop_dict['TPSA']))
 	scores_dict['pKa'] = calc_PKAScore(float(prop_dict['bpKa']))
 
@@ -142,8 +142,8 @@ def calc_HAScore(HA):
 		return 0
 
 
-def calc_MWHBNScore(mw, hbd):
-	mwhbn = hbd / math.sqrt(mw)
+def calc_MWHBNScore(mw, hbd,hba):
+	mwhbn = (hbd + hba) / math.sqrt(mw)
 	if 0.05 < mwhbn <= 0.45:
 		return (1 / 0.72258) * (26.733 * (mwhbn ** 3) - 31.495 * (mwhbn ** 2) + 9.5202 * mwhbn - 0.1358)
 	else:
@@ -179,7 +179,7 @@ class Desc:
 		coordinates = True
 		new_mol = ''
 		transcription = {'LOGD': 'logD', 'LOGP': 'logP', 'PSA': 'TPSA', 'MASS': 'MW', 'AROMATIC_RINGCOUNT': 'ArRings',
-		                 'pkacalculator': 'bpKa', 'DONOR_COUNT': 'HBD', 'CHARGE_DISTRIBUTION': 'charge_dist(7.4)',
+		                 'pkacalculator': 'bpKa', 'DONOR_COUNT': 'HBD','ACCEPTOR_COUNT':'HBA', 'CHARGE_DISTRIBUTION': 'charge_dist(7.4)',
 		                 'ATOMCOUNT': 'HAC'}
 		lines = self.mol.splitlines()
 
@@ -275,6 +275,11 @@ class Desc:
 			self.Prop['MPOScore_v2'] = self.Prop['bpKaScore'] + self.Prop['logPScore'] + self.Prop['MWScore'] + (
 					2 * self.Prop['HBDScore']) + self.Prop['TPSAScore']
 			self.Prop['BBBScore'] = calc_BBBScore(self.Prop)
+			self.Prop['BBB_Aro_R'] = calc_AroScore(int(self.Prop['ArRings']))
+			self.Prop['BBB_HA'] = calc_HAScore(int(self.Prop['HAC']))
+			self.Prop['BBB_MWHBN'] = calc_MWHBNScore(float(self.Prop['MW']), float(self.Prop['HBD']),float(self.Prop['HBA']))
+			self.Prop['BBB_TPSA'] = calc_TPSAScore(float(self.Prop['TPSA']))
+			self.Prop['BBB_pKa'] = calc_PKAScore(float(self.Prop['bpKa']))
 
 		except KeyError as missing:
 
@@ -367,8 +372,7 @@ def sdf_parser(file):
 
 
 def calc_param(file):
-	command_1 = 'cxcalc -i name -S pkacalculator -t basic -b 1 logD -H 7.4 logP donorcount polarsurfacearea mass ' \
-	            'aromaticringcount rotatablebondcount atomcount atomcount -z 1 '
+	command_1 = 'cxcalc -i name -S pkacalculator -t basic -b 1 logD -H 7.4 logP donorcount acceptorcount polarsurfacearea mass aromaticringcount rotatablebondcount atomcount atomcount -z 1 '
 	if str(file).startswith('/'):
 		command_1 += str(file)
 	else:
