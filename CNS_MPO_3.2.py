@@ -122,7 +122,7 @@ class Desc:
         for i in range(len(lines)):
             if lines[i].startswith('>  <'):
                 c_lines = lines[i].lstrip('>  <')
-                chemprop = c_lines[i].rstrip('>')
+                chemprop = c_lines.rstrip('>')
                 if chemprop in transcription.keys() or chemprop in transcription.values():
                     coordinates = False
             if coordinates:
