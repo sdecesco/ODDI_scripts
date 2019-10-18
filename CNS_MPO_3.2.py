@@ -117,28 +117,28 @@ class Desc:
         new_mol = ''
         transcription = {'LOGD': 'logD', 'LOGP': 'logP', 'PSA': 'TPSA', 'MASS': 'MW', 'AROMATIC_RINGCOUNT': 'ArRings',
                          'pkacalculator': 'bpKa', 'DONOR_COUNT': 'HBD', 'CHARGE_DISTRIBUTION': 'charge_dist(7.4)','ATOMCOUNT':'HAC'}
-        splitted_lines = self.mol.splitlines()
+        lines = self.mol.splitlines()
 
-        for lines in splitted_lines:
-            if lines.startswith('>  <'):
-                c_lines = lines.lstrip('>  <')
-                chemprop = c_lines.rstrip('>')
+        for i in range(len(lines)):
+            if lines[i].startswith('>  <'):
+                c_lines = lines[i].lstrip('>  <')
+                chemprop = c_lines[i].rstrip('>')
                 if chemprop in transcription.keys() or chemprop in transcription.values():
                     coordinates = False
             if coordinates:
-                new_mol += lines + '\n'
+                new_mol += lines[i] + '\n'
             if record_data:
                 value = str(lines)
                 if chemprop == 'LOGD':
-                    value = lines.split('\t')[1].strip()
+                    value = lines[i].split('\t')[1].strip()
                 if chemprop == 'pkacalculator':
-                    value = lines.split('\t')[0]
+                    value = lines[i].split('\t')[0]
                     if value.strip() == "":
                         value = 0.0
                 if chemprop == 'ATOMCOUNT':
-                    value = int(lines) - int(next(splitted_lines))
+                    value = int(lines[i]) - int(lines[i+1])
                 if chemprop == 'CHARGE_DISTRIBUTION':
-                    value = lines.split('\t')[1].lstrip()
+                    value = lines[i].split('\t')[1].lstrip()
                 if chemprop == 'Name':
                     chemprop = chemprop.lower()
                 if chemprop in transcription.keys():
@@ -146,9 +146,9 @@ class Desc:
                 elif chemprop in transcription.values():
                     self.Prop[chemprop] = value
                 record_data = False
-            if lines.startswith('>  <'):
-                lines = lines.lstrip('>  <')
-                chemprop = lines.rstrip('>')
+            if lines[i].startswith('>  <'):
+                lines[i] = lines[i].lstrip('>  <')
+                chemprop = lines[i].rstrip('>')
                 record_data = True
         self.mol = new_mol
 
